@@ -708,11 +708,16 @@ function exerciseModalHTML(title, w, path, onSave, onCancel) {
 
 function renderWorkoutLibrary() {
   const q = state.search.toLowerCase();
+  const typeOrder = {strength: 0, cardio: 1, yoga: 2};
   let filtered = state.workouts.filter(w => {
     const matchQ = !q || w.name.toLowerCase().includes(q) || (w.tags||[]).some(t => t.toLowerCase().includes(q));
     const f = state.filter;
     const matchF = f==='all' || w.type===f || w.focus===f || (w.tags||[]).includes(f);
     return matchQ && matchF;
+  }).sort((a, b) => {
+    const typeDiff = (typeOrder[a.type]??9) - (typeOrder[b.type]??9);
+    if (typeDiff !== 0) return typeDiff;
+    return a.name.localeCompare(b.name);
   });
 
   const cards = filtered.map(w => {
