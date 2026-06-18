@@ -517,6 +517,7 @@ window.startDaySession = function(day) {
       type: w.type,
       focus: w.focus || '',
       videoUrl: w.videoUrl || '',
+      tip: w.tip || '',
       isCardioYoga,
       sets: isCardioYoga ? [] : [{reps: last ? last.reps : '', weight: last ? last.weight : ''}],
       duration: '',
@@ -693,6 +694,10 @@ function exerciseModalHTML(title, w, path, onSave, onCancel) {
           <input type="url" value="${esc(w.videoUrl||'')}" oninput="${path}.videoUrl=this.value"
             placeholder="https://youtube.com/watch?v=…">
         </div>
+        <div class="form-group">
+          <div class="label">Smart gym tip <span style="font-weight:400;text-transform:none">(optional)</span></div>
+          <textarea oninput="${path}.tip=this.value" placeholder="e.g. Keep chest up, drive knees out at the bottom…" style="min-height:60px">${esc(w.tip||'')}</textarea>
+        </div>
         <div style="display:flex;gap:10px;margin-top:8px">
           <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="${onSave}">Save exercise</button>
           <button class="btn btn-secondary" onclick="${onCancel}">Cancel</button>
@@ -726,6 +731,7 @@ function renderWorkoutLibrary() {
         : '';
       detail = `
         <div class="divider"></div>
+        ${w.tip ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px;padding:10px;background:var(--bg);border-radius:10px">💡 ${esc(w.tip)}</div>` : ''}
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           ${videoBtn}
           <button class="btn btn-secondary btn-sm" onclick="startEditWorkout(${w.id});event.stopPropagation()">✏️ Edit</button>
@@ -874,6 +880,7 @@ function renderActiveSession() {
 
   // Last time this exercise was done (from history, not current session)
   const last = lastLogged(ex.exerciseId);
+  const tipHint = ex.tip ? `<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;padding:10px;background:var(--bg);border-radius:10px">💡 ${esc(ex.tip)}</div>` : '';
   const lastHint = (!ex.isCardioYoga && last)
     ? `<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Last time: <strong style="color:var(--text)">${last.reps ? last.reps+' reps' : ''}${last.weight ? ' @ '+last.weight : ''}</strong></div>`
     : '';
@@ -939,6 +946,7 @@ function renderActiveSession() {
     </div>
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:16px">${dots}</div>
     ${lastHint}
+    ${tipHint}
     ${videoBtn}
     <div class="card" style="margin-bottom:12px">${body}</div>
     <div style="display:flex;gap:10px;margin-top:4px">
