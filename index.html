@@ -313,37 +313,27 @@ async function handleSignOut() {
   }
 }
 
-// ── Auth bypassed for preview ──────────────────────────
-(function() {
-  const DATA_VERSION = 2; // bump this whenever DEFAULT_WORKOUTS or DEFAULT_PLANNER changes
-  try {
-    const saved = localStorage.getItem('fitwise_preview');
-    if (saved) {
-      const d = JSON.parse(saved);
-      // If version mismatch, wipe stale data and start fresh with new defaults
-      if ((d.version || 1) < DATA_VERSION) {
-        localStorage.removeItem('fitwise_preview');
-      } else {
-        if (d.workouts) state.workouts = d.workouts;
-        if (d.planner) {
-          const hasAny = Object.values(d.planner).some(ids => ids && ids.length > 0);
-          if (hasAny) state.planner = d.planner;
-        }
-        if (d.log) state.log = d.log;
-      }
-    }
-  } catch(e) {}
-  renderApp();
-  setTimeout(() => setTab('planner'), 0);
-})();
+// ── Firebase Auth ─────────────────────────────────────
+onAuthStateChanged(auth, async (u) => {
+  user = u;
+  if (u) {
+    renderLoading();
+    await loadUserData(u.uid);
+    renderApp();
+    setTimeout(() => setTab('planner'), 0);
+  } else {
+    try {
+      const result = await getRedirectResult(auth);
+      if (result && result.user) return;
+    } catch(e) { console.error(e); }
+    renderLogin();
+  }
+});
 
 function persist() {
-  try {
-    localStorage.setItem('fitwise_preview', JSON.stringify({
-      version: 2,
-      workouts: state.workouts, planner: state.planner, log: state.log
-    }));
-  } catch(e) {}
+  if (!user) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveUserData(user.uid), 1000);
 }
 
 // ── Render shells ──────────────────────────────────────
@@ -360,7 +350,7 @@ function renderLogin() {
         </svg>
       </div>
       <div class="login-title">Fitwise</div>
-      <div class="login-sub">Made with love for Melody<br>Plan your week, track your sets and runs.</div>
+      <div class="login-sub">Made with love for Melody<br>Plan your week, track your progress, and build your best self.</div>
       <div style="width:100%;max-width:320px">
         <div style="margin-bottom:12px">
           <input id="auth-email" type="email" placeholder="Email address" autocomplete="email" autocorrect="off" autocapitalize="none" style="margin-bottom:8px">
@@ -401,8 +391,13 @@ function renderApp() {
 
 function renderHeader() {
   const el = document.getElementById('user-area');
-  if (!el) return;
-  el.innerHTML = `<span style="font-size:12px;padding:4px 10px;border-radius:50px;font-weight:600;background:var(--yellowbg);color:var(--yellow)">Preview</span>`;
+  if (!el || !user) return;
+  const initials = (user.displayName || user.email || 'Me').slice(0,2).toUpperCase();
+  el.innerHTML = `
+    <button class="user-btn" onclick="window.handleSignOut()">
+      <div class="user-avatar">${initials}</div>
+      ${state.syncing ? '<span class="sync-indicator">syncing…</span>' : ''}
+    </button>`;
 }
 
 // ── Tab navigation ─────────────────────────────────────
