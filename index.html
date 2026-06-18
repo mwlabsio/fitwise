@@ -86,7 +86,7 @@
   .planner-grid th{font-size:10px;font-weight:700;color:var(--muted);text-align:center;padding:2px 0 7px;letter-spacing:0.6px}
   .planner-grid td{vertical-align:top;padding:8px 0;border-bottom:1px solid var(--border)}
   .planner-grid tr:last-child td{border-bottom:none}
-  .planner-grid .pl-day-cell{width:68px;padding-right:6px}
+  .planner-grid .pl-day-cell{width:68px;padding-right:6px;border-right:1.5px solid var(--border)}
   .pl-day{text-align:center;font-size:12px;font-weight:700;color:var(--accent);padding:6px 5px;line-height:1.1;border-radius:9px}
   .pl-day .pl-dow{display:block}
   .pl-day.today{background:var(--accent);color:#fff}
@@ -439,7 +439,7 @@ function dayFocusLabel(day) {
     return 'Strength';
   }
   if (types.includes('cardio')) return 'Cardio / Rowing';
-  if (types.includes('yoga'))   return 'Yoga / Pilates';
+  if (types.includes('yoga'))   return 'Yoga';
   return 'Mixed';
 }
 
@@ -570,7 +570,7 @@ function renderPlanner() {
       {val:'lower',     label:'Lower',      type:'strength'},
       {val:'full-body', label:'Full Body',  type:'strength'},
       {val:'cardio',    label:'Cardio',     type:'cardio'},
-      {val:'yoga',      label:'Yoga / Pilates', type:'yoga'},
+      {val:'yoga',      label:'Yoga', type:'yoga'},
     ];
     const activeDayFilters = state.plannerFilter[day] || [];
     const filterChips = filterDefs.map(f => {
@@ -591,7 +591,7 @@ function renderPlanner() {
     const grouped = {};
     dayFiltered.forEach(w => {
       const key = w.type === 'strength' ? `Strength · ${(w.focus||'').replace('-',' ')}` :
-                  w.type === 'cardio'   ? 'Cardio / Rowing' : 'Yoga / Pilates';
+                  w.type === 'cardio'   ? 'Cardio / Rowing' : 'Yoga';
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(w);
     });
@@ -606,7 +606,7 @@ function renderPlanner() {
         <div class="pl-day ${isToday?'today':''}"><span class="pl-dow">${day}</span><span class="pl-sub">${dateNum}</span></div>
         <div style="display:flex;flex-direction:column;gap:3px;margin-top:6px">${filterChips}</div>
       </td>
-      <td style="padding-top:10px;padding-bottom:10px">
+      <td style="padding-top:10px;padding-bottom:10px;padding-left:10px">
         ${ids.length===0 ? '<div style="font-size:12px;color:var(--muted);padding:4px 0">No exercises planned</div>' : cells}
         <select class="workout-select" style="margin-top:4px" onchange="plannerAddExercise('${day}',this.value);this.value=''">
           <option value="">${activeDayFilters.length ? '+ add filtered exercise' : '+ add exercise'}</option>${opts}
@@ -678,7 +678,7 @@ function exerciseModalHTML(title, w, path, onSave, onCancel) {
             <select onchange="${path}.type=this.value;render()">
               <option value="strength" ${w.type==='strength'?'selected':''}>Strength</option>
               <option value="cardio"   ${w.type==='cardio'?'selected':''}>Cardio</option>
-              <option value="yoga"     ${w.type==='yoga'?'selected':''}>Yoga / Pilates</option>
+              <option value="yoga"     ${w.type==='yoga'?'selected':''}>Yoga</option>
             </select>
           </div>
           <div class="form-group">
@@ -789,7 +789,7 @@ function renderWorkoutLibrary() {
     {val:'lower',      label:'Lower'},
     {val:'full-body',  label:'Full Body'},
     {val:'cardio',     label:'Cardio'},
-    {val:'yoga',       label:'Yoga / Pilates'},
+    {val:'yoga',       label:'Yoga'},
   ];
   const chips = filterOptions.map(f =>
     `<button class="filter-chip ${state.filter===f.val?'active':''}" onclick="setWorkoutFilter('${f.val}')">${f.label}</button>`
