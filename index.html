@@ -196,7 +196,7 @@ let state = {
   tab: 'planner',
   workouts: DEFAULT_WORKOUTS,
   planner: JSON.parse(JSON.stringify(DEFAULT_PLANNER)),
-  dayLabels: {Mon:'Strength · Upper', Tue:'Strength · Lower', Wed:'Cardio / Rowing', Thu:'Strength · Full Body', Fri:'Cardio / Rowing', Sat:'Yoga / Pilates', Sun:'Rest'},
+  plannerFilter: {}, // { "Mon": ["upper","cardio"], ... }
   log: [],
   search: '',
   filter: 'all',
@@ -221,7 +221,6 @@ async function loadUserData(uid) {
         const savedPlanner = data.planner || {};
         const hasPlanner = Object.values(savedPlanner).some(ids => ids && ids.length > 0);
         state.planner = hasPlanner ? savedPlanner : JSON.parse(JSON.stringify(DEFAULT_PLANNER));
-        if (data.dayLabels) state.dayLabels = data.dayLabels;
         state.log = data.log || [];
         render();
       } else {
@@ -242,7 +241,6 @@ async function saveUserData(uid) {
     await setDoc(doc(db, 'fitwise_users', uid), {
       workouts:   state.workouts,
       planner:    state.planner,
-      dayLabels:  state.dayLabels,
       log:        state.log,
       updatedAt:  new Date().toISOString(),
     });
@@ -471,6 +469,14 @@ window.plannerAddExercise = function(day, eid) {
   render();
 }
 
+window.togglePlannerFilter = function(day, val) {
+  if (!state.plannerFilter[day]) state.plannerFilter[day] = [];
+  const idx = state.plannerFilter[day].indexOf(val);
+  if (idx >= 0) state.plannerFilter[day].splice(idx, 1);
+  else state.plannerFilter[day].push(val);
+  render();
+}
+
 window.plannerMoveExercise = function(day, eid, dir) {
   const ids = state.planner[day] || [];
   const idx = ids.indexOf(eid);
@@ -558,44 +564,50 @@ function renderPlanner() {
       </div>`;
     }).join('');
 
-    // Group options by type+focus for the dropdown
+    // Filter chips for the day
+    const filterDefs = [
+      {val:'upper',     label:'Upper',      type:'strength'},
+      {val:'lower',     label:'Lower',      type:'strength'},
+      {val:'full-body', label:'Full Body',  type:'strength'},
+      {val:'cardio',    label:'Cardio',     type:'cardio'},
+      {val:'yoga',      label:'Yoga / Pilates', type:'yoga'},
+    ];
+    const activeDayFilters = state.plannerFilter[day] || [];
+    const filterChips = filterDefs.map(f => {
+      const active = activeDayFilters.includes(f.val);
+      const col = f.type==='cardio' ? 'var(--blue)' : f.type==='yoga' ? 'var(--purple)' : 'var(--accent)';
+      return `<button style="font-size:10px;font-weight:600;padding:3px 10px;border-radius:50px;border:1.5px solid ${active?col:'var(--border2)'};background:${active?col:'transparent'};color:${active?'#fff':'var(--muted)'};cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0"
+        onclick="togglePlannerFilter('${day}','${f.val}');event.stopPropagation()">${f.label}</button>`;
+    }).join('');
+
+    // Filter workouts for dropdown based on selected chips
+    const dayFiltered = activeDayFilters.length === 0
+      ? state.workouts
+      : state.workouts.filter(w =>
+          activeDayFilters.some(fv =>
+            fv === w.type || fv === w.focus
+          )
+        );
     const grouped = {};
-    state.workouts.forEach(w => {
+    dayFiltered.forEach(w => {
       const key = w.type === 'strength' ? `Strength · ${(w.focus||'').replace('-',' ')}` :
                   w.type === 'cardio'   ? 'Cardio / Rowing' : 'Yoga / Pilates';
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(w);
     });
     const opts = Object.entries(grouped).map(([group, ws]) =>
-      `<optgroup label="${esc(group)}">${ws.map(w => `<option value="${w.id}">${typeEmoji(w.type,w.focus)} ${esc(w.name)}</option>`).join('')}</optgroup>`
+      `<optgroup label="${esc(group)}">${ws.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}</optgroup>`
     ).join('');
     const hasExercises = ids.length > 0;
 
-    const currentLabel = state.dayLabels[day] || '';
-    const firstType = ids.length ? state.workouts.find(x=>x.id===ids[0])?.type : null;
-    const focusColor = !currentLabel ? 'var(--muted)' :
-      currentLabel.toLowerCase().includes('cardio') ? 'var(--blue)' :
-      currentLabel.toLowerCase().includes('yoga') || currentLabel.toLowerCase().includes('pilates') ? 'var(--purple)' :
-      currentLabel.toLowerCase().includes('rest') ? 'var(--muted)' : 'var(--accent)';
-    const labelOptions = ['Strength · Upper','Strength · Lower','Strength · Full Body','Cardio / Rowing','Yoga / Pilates','Active Recovery','Rest'];
-    const labelSelect = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">
-      ${labelOptions.map(l => {
-        const active = currentLabel === l;
-        const col = l.includes('Cardio') ? 'var(--blue)' : l.includes('Yoga')||l.includes('Recovery') ? 'var(--purple)' : l==='Rest' ? 'var(--muted)' : 'var(--accent)';
-        const bg  = active ? col : 'transparent';
-        const txt = active ? '#fff' : 'var(--muted)';
-        const border = active ? col : 'var(--border2)';
-        return `<button style="font-size:10px;font-weight:600;padding:3px 10px;border-radius:50px;border:1.5px solid ${border};background:${bg};color:${txt};cursor:pointer;font-family:inherit;white-space:nowrap"
-          onclick="state.dayLabels['${day}']='${l}';persist();render();event.stopPropagation()">${l}</button>`;
-      }).join('')}
-    </div>`;
+
     return `<tr>
       <td class="pl-day-cell"><div class="pl-day ${isToday?'today':''}"><span class="pl-dow">${day}</span><span class="pl-sub">${dateNum}</span></div></td>
       <td style="padding-top:10px;padding-bottom:10px">
-        ${labelSelect}
         ${ids.length===0 ? '<div style="font-size:12px;color:var(--muted);padding:4px 0">No exercises planned</div>' : cells}
-        <select class="workout-select" style="margin-top:4px" onchange="plannerAddExercise('${day}',this.value);this.value=''">
-          <option value="">+ add exercise</option>${opts}
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;margin-bottom:4px">${filterChips}</div>
+        <select class="workout-select" onchange="plannerAddExercise('${day}',this.value);this.value=''">
+          <option value="">${activeDayFilters.length ? '+ add filtered exercise' : '+ add exercise'}</option>${opts}
         </select>
         ${hasExercises ? `<button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="startDaySession('${day}')">▶ Start ${day}'s session</button>` : ''}
       </td>
