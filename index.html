@@ -372,6 +372,7 @@ function renderHeader() {
         onclick="window.location.reload()" title="Refresh app">
         ${state.syncing ? '<span style="font-size:11px;color:var(--muted)">saving…</span>' : '↻'}
       </button>
+      <button onclick="window.exportData()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:4px;line-height:1;font-weight:600" title="Export my data">⬇</button>
       <button class="user-btn" style="padding:4px" onclick="window.handleSignOut()">
         <div class="user-avatar">${photo ? `<img src="${photo}" alt="">` : initial}</div>
       </button>
@@ -981,6 +982,24 @@ window.deleteLogEntry = function(i) {
   if (!confirm('Delete this session?')) return;
   state.log.splice(i, 1);
   persist(); render();
+}
+
+// ── Export ────────────────────────────────────────────
+window.exportData = function() {
+  const data = {
+    exportedAt: new Date().toISOString(),
+    app: 'Fitwise',
+    workouts: state.workouts,
+    planner:  state.planner,
+    log:      state.log,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fitwise-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // expose to global
