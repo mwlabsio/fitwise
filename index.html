@@ -614,6 +614,17 @@ window.saveNewWorkout = function() {
 }
 window.setWorkoutFilter = function(f) { state.filter = f; render(); }
 
+window.moveWorkout = function(id, dir) {
+  const idx = state.workouts.findIndex(w => w.id === id);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= state.workouts.length) return;
+  const arr = [...state.workouts];
+  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+  state.workouts = arr;
+  persist(); render();
+}
+
 function exerciseModalHTML(title, w, path, onSave, onCancel) {
   return `
     <div class="modal-overlay" onclick="if(event.target===this){${onCancel}}">
@@ -710,7 +721,9 @@ function renderWorkoutLibrary() {
       detail = `
         <div class="divider"></div>
         ${w.tip ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px;padding:10px;background:var(--bg);border-radius:10px">💡 ${esc(w.tip)}</div>` : ''}
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-secondary btn-sm" onclick="moveWorkout(${w.id},-1);event.stopPropagation()" title="Move up">↑</button>
+          <button class="btn btn-secondary btn-sm" onclick="moveWorkout(${w.id},1);event.stopPropagation()" title="Move down">↓</button>
           ${videoBtn}
           <button class="btn btn-secondary btn-sm" onclick="startEditWorkout(${w.id});event.stopPropagation()">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteWorkout(${w.id});event.stopPropagation()">Delete</button>
