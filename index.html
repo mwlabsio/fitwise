@@ -398,7 +398,7 @@ function renderHeader() {
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px">
       <button style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;line-height:1;display:flex;align-items:center"
-        onclick="window.forceRefresh()" title="Refresh data">
+        onclick="window.location.reload()" title="Refresh app">
         ${state.syncing ? '<span style="font-size:11px;color:var(--muted)">saving…</span>' : '↻'}
       </button>
       <button class="user-btn" style="padding:4px" onclick="window.handleSignOut()">
@@ -407,12 +407,6 @@ function renderHeader() {
     </div>`;
 }
 
-window.forceRefresh = async function() {
-  if (!user) return;
-  state.syncing = true; renderHeader();
-  await loadUserData(user.uid);
-  state.syncing = false; renderHeader();
-}
 
 // ── Tab navigation ─────────────────────────────────────
 window.setTab = function(tab) {
