@@ -160,48 +160,24 @@ const db = getFirestore(app);
 
 // ── Default workout library ────────────────────────────
 // Categories: strength | cardio | yoga
-// Strength sub-focus: upper | lower | full-body
-// Cardio sub-focus: run | row | bike | swim
-// Yoga sub-focus: recovery | pilates | flow
 const DEFAULT_WORKOUTS = [
-  // ── Strength · Upper ──────────────────────────────────
-  {id:1,  name:"Bench Press",          type:"strength", focus:"upper",     tags:["chest","push","compound"],   videoUrl:"https://www.youtube.com/watch?v=SCVCLChPQEs"},
-  {id:2,  name:"Overhead Press",       type:"strength", focus:"upper",     tags:["shoulders","push"],          videoUrl:"https://www.youtube.com/watch?v=2yjwXTZQDDI"},
-  {id:3,  name:"Bent-over Row",        type:"strength", focus:"upper",     tags:["back","pull","compound"],    videoUrl:"https://www.youtube.com/watch?v=FWJR5Ve8bnQ"},
-  {id:4,  name:"Lat Pulldown",         type:"strength", focus:"upper",     tags:["back","pull"],               videoUrl:"https://www.youtube.com/watch?v=CAwf7n6Luuc"},
-  {id:5,  name:"Lateral Raises",       type:"strength", focus:"upper",     tags:["shoulders","isolation"],     videoUrl:"https://www.youtube.com/watch?v=3VcKaXpzqRo"},
-  {id:6,  name:"Tricep Pushdowns",     type:"strength", focus:"upper",     tags:["arms","isolation"],          videoUrl:"https://www.youtube.com/watch?v=2-LAMcpzODU"},
-  {id:7,  name:"Bicep Curls",          type:"strength", focus:"upper",     tags:["arms","isolation"],          videoUrl:"https://www.youtube.com/watch?v=ykJmrZ5v0Oo"},
-  // ── Strength · Lower ──────────────────────────────────
-  {id:8,  name:"Barbell Squat",        type:"strength", focus:"lower",     tags:["legs","compound","quads"],   videoUrl:"https://www.youtube.com/watch?v=bEv6CCg2BC8"},
-  {id:9,  name:"Romanian Deadlift",    type:"strength", focus:"lower",     tags:["legs","posterior","hamstrings"],videoUrl:"https://www.youtube.com/watch?v=7j-2_9bODQE"},
-  {id:10, name:"Leg Press",            type:"strength", focus:"lower",     tags:["legs","quads"],              videoUrl:"https://www.youtube.com/watch?v=IZxyjW7MPJQ"},
-  {id:11, name:"Hip Thrust",           type:"strength", focus:"lower",     tags:["glutes","posterior"],        videoUrl:"https://www.youtube.com/watch?v=SEdqd1n0cvg"},
-  {id:12, name:"Walking Lunges",       type:"strength", focus:"lower",     tags:["legs","glutes","balance"],   videoUrl:"https://www.youtube.com/watch?v=L8fvypPrzzs"},
-  {id:13, name:"Calf Raises",          type:"strength", focus:"lower",     tags:["legs","calves"],             videoUrl:"https://www.youtube.com/watch?v=-M4-G8p1fCI"},
-  // ── Strength · Full Body ──────────────────────────────
-  {id:14, name:"Deadlift",             type:"strength", focus:"full-body", tags:["compound","posterior"],      videoUrl:"https://www.youtube.com/watch?v=op9kVnSso6Q"},
-  {id:15, name:"Pull-ups",             type:"strength", focus:"full-body", tags:["back","compound","bodyweight"],videoUrl:"https://www.youtube.com/watch?v=eGo4IYlbE5g"},
-  {id:16, name:"Dumbbell Thrusters",   type:"strength", focus:"full-body", tags:["compound","cardio-strength"],videoUrl:"https://www.youtube.com/watch?v=L219ltL15zk"},
-  {id:17, name:"Kettlebell Swing",     type:"strength", focus:"full-body", tags:["posterior","power"],         videoUrl:"https://www.youtube.com/watch?v=YSxHifyI6s8"},
-  // ── Cardio / Rowing ───────────────────────────────────
-  {id:18, name:"Rowing Machine",       type:"cardio",   focus:"row",       tags:["cardio","full-body","zone2"],videoUrl:"https://www.youtube.com/watch?v=H0r_ZmzZHdY"},
-  {id:19, name:"Easy Run",             type:"cardio",   focus:"run",       tags:["cardio","aerobic","zone2"],  videoUrl:""},
-  {id:20, name:"Interval Run",         type:"cardio",   focus:"run",       tags:["cardio","hiit","zone4"],     videoUrl:""},
-  {id:21, name:"Stationary Bike",      type:"cardio",   focus:"bike",      tags:["cardio","low-impact","zone2"],videoUrl:""},
-  {id:22, name:"Rowing Intervals",     type:"cardio",   focus:"row",       tags:["cardio","hiit","zone4"],     videoUrl:"https://www.youtube.com/watch?v=rX-kMsNcYhQ"},
-  // ── Yoga / Pilates ────────────────────────────────────
-  {id:23, name:"Sun Salutation A",     type:"yoga",     focus:"flow",      tags:["warmup","flow"],             videoUrl:"https://www.youtube.com/watch?v=73sjOu0g58M"},
-  {id:24, name:"Pigeon Pose",          type:"yoga",     focus:"recovery",  tags:["hips","flexibility"],        videoUrl:"https://www.youtube.com/watch?v=04hDqk-NR44"},
-  {id:25, name:"Downward Dog",         type:"yoga",     focus:"flow",      tags:["full-body","stretch"],       videoUrl:"https://www.youtube.com/watch?v=j97SSGsnCAQ"},
-  {id:26, name:"Pilates Hundred",      type:"yoga",     focus:"pilates",   tags:["core","pilates"],            videoUrl:"https://www.youtube.com/watch?v=4yHib7WPWrU"},
-  {id:27, name:"Pilates Roll-up",      type:"yoga",     focus:"pilates",   tags:["core","pilates","flexibility"],videoUrl:"https://www.youtube.com/watch?v=QvHD9GxOf2Q"},
-  {id:28, name:"Hip 90/90 Stretch",    type:"yoga",     focus:"recovery",  tags:["hips","mobility"],           videoUrl:"https://www.youtube.com/watch?v=cGEDjYIFH80"},
-  {id:29, name:"Thoracic Rotation",    type:"yoga",     focus:"recovery",  tags:["spine","mobility"],          videoUrl:"https://www.youtube.com/watch?v=sVgdFpxAkIU"},
-  {id:30, name:"Child's Pose",         type:"yoga",     focus:"recovery",  tags:["rest","stretch"],            videoUrl:"https://www.youtube.com/watch?v=qZ_NEUpper4"},
+  {id:1, name:"Bench Press",      type:"strength", focus:"upper",     tags:["chest","push"],   videoUrl:"https://www.youtube.com/watch?v=SCVCLChPQEs", tip:"Keep shoulder blades pinched together and feet flat on the floor."},
+  {id:2, name:"Barbell Squat",    type:"strength", focus:"lower",     tags:["legs","compound"],videoUrl:"https://www.youtube.com/watch?v=bEv6CCg2BC8",  tip:"Drive knees out, keep chest up, break parallel if you can."},
+  {id:3, name:"Deadlift",         type:"strength", focus:"full-body", tags:["compound","posterior"],videoUrl:"https://www.youtube.com/watch?v=op9kVnSso6Q", tip:"Hinge at the hips, keep the bar close to your body throughout."},
+  {id:4, name:"Rowing Machine",   type:"cardio",   focus:"row",       tags:["cardio","full-body"],videoUrl:"https://www.youtube.com/watch?v=H0r_ZmzZHdY", tip:"Drive with legs first, then lean back, then pull arms. Legs → back → arms."},
+  {id:5, name:"Sun Salutation A", type:"yoga",     focus:"flow",      tags:["warmup","flow"],  videoUrl:"https://www.youtube.com/watch?v=73sjOu0g58M",  tip:"Move with your breath — inhale to expand, exhale to fold."},
 ];
 
 // Default weekly schedule
+const DEFAULT_PLANNER = {
+  Mon: [1],   // Strength · Upper
+  Tue: [2],   // Strength · Lower
+  Wed: [4],   // Cardio / Rowing
+  Thu: [3],   // Strength · Full Body
+  Fri: [4],   // Cardio / Rowing
+  Sat: [5],   // Yoga
+  Sun: [],    // Rest
+};
 const DEFAULT_PLANNER = {
   Mon: [1,2,3,4,5,6,7],       // Strength · Upper
   Tue: [8,9,10,11,12,13],     // Strength · Lower
@@ -247,14 +223,19 @@ async function loadUserData(uid) {
       if (snap.exists()) {
         const data = snap.data();
         if (Date.now() - lastSaveTime < 2000) return;
-        state.workouts = data.workouts || DEFAULT_WORKOUTS;
-        state.planner  = data.planner  || {};
-        state.log      = data.log      || [];
+        // Only fall back to defaults if there is truly nothing saved yet
+        state.workouts = (data.workouts && data.workouts.length) ? data.workouts : DEFAULT_WORKOUTS;
+        // Only use default planner if no planner data saved
+        const savedPlanner = data.planner || {};
+        const hasPlanner = Object.values(savedPlanner).some(ids => ids && ids.length > 0);
+        state.planner = hasPlanner ? savedPlanner : JSON.parse(JSON.stringify(DEFAULT_PLANNER));
+        state.log = data.log || [];
         render();
       } else {
+        // First time user — seed with defaults and save
         state.workouts = DEFAULT_WORKOUTS;
-        state.planner = {};
-        state.log = [];
+        state.planner  = JSON.parse(JSON.stringify(DEFAULT_PLANNER));
+        state.log      = [];
         await saveUserData(uid);
       }
     });
