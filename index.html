@@ -196,6 +196,7 @@ let state = {
   tab: 'planner',
   workouts: DEFAULT_WORKOUTS,
   planner: JSON.parse(JSON.stringify(DEFAULT_PLANNER)),
+  dayLabels: {Mon:'Strength · Upper', Tue:'Strength · Lower', Wed:'Cardio / Rowing', Thu:'Strength · Full Body', Fri:'Cardio / Rowing', Sat:'Yoga / Pilates', Sun:'Rest'},
   log: [],
   search: '',
   filter: 'all',
@@ -217,10 +218,10 @@ async function loadUserData(uid) {
         if (Date.now() - lastSaveTime < 2000) return;
         // Only fall back to defaults if there is truly nothing saved yet
         state.workouts = (data.workouts && data.workouts.length) ? data.workouts : DEFAULT_WORKOUTS;
-        // Only use default planner if no planner data saved
         const savedPlanner = data.planner || {};
         const hasPlanner = Object.values(savedPlanner).some(ids => ids && ids.length > 0);
         state.planner = hasPlanner ? savedPlanner : JSON.parse(JSON.stringify(DEFAULT_PLANNER));
+        if (data.dayLabels) state.dayLabels = data.dayLabels;
         state.log = data.log || [];
         render();
       } else {
@@ -239,10 +240,11 @@ async function saveUserData(uid) {
   try {
     state.syncing = true; lastSaveTime = Date.now(); renderHeader();
     await setDoc(doc(db, 'fitwise_users', uid), {
-      workouts: state.workouts,
-      planner:  state.planner,
-      log:      state.log,
-      updatedAt: new Date().toISOString(),
+      workouts:   state.workouts,
+      planner:    state.planner,
+      dayLabels:  state.dayLabels,
+      log:        state.log,
+      updatedAt:  new Date().toISOString(),
     });
     state.syncing = false; renderHeader();
   } catch(e) { state.syncing = false; renderHeader(); console.error(e); }
@@ -545,14 +547,14 @@ function renderPlanner() {
       const lastTip = last ? `${last.reps ? last.reps+'r' : ''}${last.weight ? ' @'+last.weight : ''}` : '';
       const isFirst = ids.indexOf(id) === 0;
       const isLast  = ids.indexOf(id) === ids.length - 1;
-      return `<div class="workout-cell ${tc}" style="margin-bottom:3px;padding-right:52px">
-        <div class="workout-cell-name">${typeEmoji(w.type, w.focus)} ${esc(w.name)}</div>
-        ${lastTip ? `<div style="font-size:9px;color:var(--muted);margin-top:1px">last: ${esc(lastTip)}</div>` : ''}
-        <div style="position:absolute;top:50%;right:4px;transform:translateY(-50%);display:flex;flex-direction:column;gap:1px">
-          ${!isFirst ? `<button style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;line-height:1" onclick="plannerMoveExercise('${day}',${w.id},-1);event.stopPropagation()">↑</button>` : '<span style="font-size:11px;opacity:0">↑</span>'}
-          ${!isLast  ? `<button style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;line-height:1" onclick="plannerMoveExercise('${day}',${w.id},1);event.stopPropagation()">↓</button>`  : '<span style="font-size:11px;opacity:0">↓</span>'}
+      return `<div class="workout-cell ${tc}" style="margin-bottom:3px;display:flex;align-items:center;gap:4px;padding:6px 8px">
+        <div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
+          <button style="background:none;border:none;color:${!isFirst?'var(--muted)':'transparent'};font-size:11px;cursor:pointer;padding:0;line-height:1" onclick="plannerMoveExercise('${day}',${w.id},-1);event.stopPropagation()">↑</button>
+          <button style="background:none;border:none;color:${!isLast?'var(--muted)':'transparent'};font-size:11px;cursor:pointer;padding:0;line-height:1" onclick="plannerMoveExercise('${day}',${w.id},1);event.stopPropagation()">↓</button>
         </div>
-        <button class="workout-cell-del" onclick="plannerRemove('${day}',${w.id});event.stopPropagation()">×</button>
+        <div style="flex:1;font-weight:600;font-size:11px;color:var(--accent2);line-height:1.2">${esc(w.name)}</div>
+        ${lastTip ? `<div style="font-size:9px;color:var(--muted)">${esc(lastTip)}</div>` : ''}
+        <button style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:0;line-height:1;flex-shrink:0" onclick="plannerRemove('${day}',${w.id});event.stopPropagation()">×</button>
       </div>`;
     }).join('');
 
@@ -569,15 +571,28 @@ function renderPlanner() {
     ).join('');
     const hasExercises = ids.length > 0;
 
-    const focusLabel = dayFocusLabel(day);
+    const currentLabel = state.dayLabels[day] || '';
     const firstType = ids.length ? state.workouts.find(x=>x.id===ids[0])?.type : null;
-    const focusColor = !firstType ? 'var(--muted)' :
-      firstType === 'cardio' ? 'var(--blue)' :
-      firstType === 'yoga'   ? 'var(--purple)' : 'var(--accent)';
+    const focusColor = !currentLabel ? 'var(--muted)' :
+      currentLabel.toLowerCase().includes('cardio') ? 'var(--blue)' :
+      currentLabel.toLowerCase().includes('yoga') || currentLabel.toLowerCase().includes('pilates') ? 'var(--purple)' :
+      currentLabel.toLowerCase().includes('rest') ? 'var(--muted)' : 'var(--accent)';
+    const labelOptions = ['Strength · Upper','Strength · Lower','Strength · Full Body','Cardio / Rowing','Yoga / Pilates','Active Recovery','Rest'];
+    const labelSelect = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">
+      ${labelOptions.map(l => {
+        const active = currentLabel === l;
+        const col = l.includes('Cardio') ? 'var(--blue)' : l.includes('Yoga')||l.includes('Recovery') ? 'var(--purple)' : l==='Rest' ? 'var(--muted)' : 'var(--accent)';
+        const bg  = active ? col : 'transparent';
+        const txt = active ? '#fff' : 'var(--muted)';
+        const border = active ? col : 'var(--border2)';
+        return `<button style="font-size:10px;font-weight:600;padding:3px 10px;border-radius:50px;border:1.5px solid ${border};background:${bg};color:${txt};cursor:pointer;font-family:inherit;white-space:nowrap"
+          onclick="state.dayLabels['${day}']='${l}';persist();render();event.stopPropagation()">${l}</button>`;
+      }).join('')}
+    </div>`;
     return `<tr>
       <td class="pl-day-cell"><div class="pl-day ${isToday?'today':''}"><span class="pl-dow">${day}</span><span class="pl-sub">${dateNum}</span></div></td>
       <td style="padding-top:10px;padding-bottom:10px">
-        <div style="font-size:10px;font-weight:700;color:${focusColor};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">${focusLabel}</div>
+        ${labelSelect}
         ${ids.length===0 ? '<div style="font-size:12px;color:var(--muted);padding:4px 0">No exercises planned</div>' : cells}
         <select class="workout-select" style="margin-top:4px" onchange="plannerAddExercise('${day}',this.value);this.value=''">
           <option value="">+ add exercise</option>${opts}
