@@ -650,13 +650,36 @@ function exerciseModalHTML(title, w, path, onSave, onCancel) {
           <div class="label">Exercise name</div>
           <input type="text" value="${esc(w.name)}" oninput="${path}.name=this.value" placeholder="e.g. Barbell Squat">
         </div>
-        <div class="form-group">
-          <div class="label">Type</div>
-          <select onchange="${path}.type=this.value">
-            <option value="strength" ${w.type==='strength'?'selected':''}>🏋️ Strength</option>
-            <option value="cardio"   ${w.type==='cardio'?'selected':''}>🏃 Cardio</option>
-            <option value="yoga"     ${w.type==='yoga'?'selected':''}>🧘 Yoga / Mobility</option>
-          </select>
+        <div class="form-grid">
+          <div class="form-group">
+            <div class="label">Type</div>
+            <select onchange="${path}.type=this.value;render()">
+              <option value="strength" ${w.type==='strength'?'selected':''}>Strength</option>
+              <option value="cardio"   ${w.type==='cardio'?'selected':''}>Cardio / Rowing</option>
+              <option value="yoga"     ${w.type==='yoga'?'selected':''}>Yoga / Pilates</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="label">Focus</div>
+            <select onchange="${path}.focus=this.value">
+              ${w.type==='strength' ? `
+                <option value="" ${!w.focus?'selected':''}>— none —</option>
+                <option value="upper"     ${w.focus==='upper'?'selected':''}>Upper Body</option>
+                <option value="lower"     ${w.focus==='lower'?'selected':''}>Lower Body</option>
+                <option value="full-body" ${w.focus==='full-body'?'selected':''}>Full Body</option>
+              ` : w.type==='cardio' ? `
+                <option value="" ${!w.focus?'selected':''}>— none —</option>
+                <option value="row"  ${w.focus==='row'?'selected':''}>Rowing</option>
+                <option value="bike" ${w.focus==='bike'?'selected':''}>Bike</option>
+                <option value="run"  ${w.focus==='run'?'selected':''}>Run</option>
+              ` : `
+                <option value="" ${!w.focus?'selected':''}>— none —</option>
+                <option value="flow"     ${w.focus==='flow'?'selected':''}>Flow</option>
+                <option value="pilates"  ${w.focus==='pilates'?'selected':''}>Pilates</option>
+                <option value="recovery" ${w.focus==='recovery'?'selected':''}>Recovery</option>
+              `}
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <div class="label">Tags <span style="font-weight:400;text-transform:none">(comma separated)</span></div>
