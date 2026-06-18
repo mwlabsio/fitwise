@@ -35,7 +35,7 @@
   .user-btn{display:flex;align-items:center;gap:6px;background:var(--bg);border:1.5px solid var(--border);border-radius:50px;padding:6px 12px 6px 8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text)}
   .user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accentbg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent2);overflow:hidden;flex-shrink:0}
   nav{display:flex;gap:4px;background:var(--bg);border-radius:var(--radius-sm);padding:3px}
-  nav button{flex:1;padding:8px 4px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;transition:all 0.15s;font-family:inherit}
+  nav button{flex:1;padding:8px 4px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:500;border-radius:6px;cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap;text-align:center}
   nav button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1);font-weight:600}
   main{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 16px;padding-bottom:max(100px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;min-height:0}
   h2{font-size:17px;font-weight:600;margin-bottom:14px}
@@ -103,7 +103,7 @@
   .workout-cell-name{font-weight:600;color:var(--accent2);line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:1;padding-right:18px}
   .workout-cell.rest .workout-cell-name{color:var(--muted)}
   .workout-cell-del{position:absolute;top:2px;right:4px;background:none;border:none;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;padding:0;font-weight:700;opacity:.7}
-  .workout-select{font-size:15px;text-align:center;text-align-last:center;padding:5px 8px;color:var(--muted);border:1.5px dashed var(--border2);background-color:transparent;background-image:none;min-height:38px;width:100%;border-radius:10px}
+  .workout-select{font-size:11px;text-align:center;text-align-last:center;padding:5px 8px;color:var(--muted);border:1.5px dashed var(--border2);background-color:transparent;background-image:none;min-height:38px;width:100%;border-radius:10px}
   .workout-select:focus{border-style:solid}
   /* Workout library cards */
   .workout-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -609,7 +609,7 @@ function renderPlanner() {
         <tbody>${rows}</tbody>
       </table>
     </div>
-    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:14px">Add exercises to a day · hit ▶ Start session to log them all at once</p>`;
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:14px">Hit ▶ Start session to log all exercises at once</p>`;
 }
 
 // ── Workout Library ────────────────────────────────────
