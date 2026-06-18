@@ -469,6 +469,18 @@ window.plannerAddExercise = function(day, eid) {
   render();
 }
 
+window.plannerMoveExercise = function(day, eid, dir) {
+  const ids = state.planner[day] || [];
+  const idx = ids.indexOf(eid);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= ids.length) return;
+  const arr = [...ids];
+  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+  state.planner[day] = arr;
+  persist(); render();
+}
+
 window.plannerRemove = function(day, eid) {
   if (!state.planner[day]) return;
   state.planner[day] = state.planner[day].filter(i => i !== eid);
@@ -531,9 +543,15 @@ function renderPlanner() {
       const tc = typeColor(w.type);
       const last = lastLogged(id);
       const lastTip = last ? `${last.reps ? last.reps+'r' : ''}${last.weight ? ' @'+last.weight : ''}` : '';
-      return `<div class="workout-cell ${tc}" style="margin-bottom:3px">
+      const isFirst = ids.indexOf(id) === 0;
+      const isLast  = ids.indexOf(id) === ids.length - 1;
+      return `<div class="workout-cell ${tc}" style="margin-bottom:3px;padding-right:52px">
         <div class="workout-cell-name">${typeEmoji(w.type, w.focus)} ${esc(w.name)}</div>
         ${lastTip ? `<div style="font-size:9px;color:var(--muted);margin-top:1px">last: ${esc(lastTip)}</div>` : ''}
+        <div style="position:absolute;top:50%;right:4px;transform:translateY(-50%);display:flex;flex-direction:column;gap:1px">
+          ${!isFirst ? `<button style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;line-height:1" onclick="plannerMoveExercise('${day}',${w.id},-1);event.stopPropagation()">↑</button>` : '<span style="font-size:11px;opacity:0">↑</span>'}
+          ${!isLast  ? `<button style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;line-height:1" onclick="plannerMoveExercise('${day}',${w.id},1);event.stopPropagation()">↓</button>`  : '<span style="font-size:11px;opacity:0">↓</span>'}
+        </div>
         <button class="workout-cell-del" onclick="plannerRemove('${day}',${w.id});event.stopPropagation()">×</button>
       </div>`;
     }).join('');
@@ -614,16 +632,6 @@ window.saveNewWorkout = function() {
 }
 window.setWorkoutFilter = function(f) { state.filter = f; render(); }
 
-window.moveWorkout = function(id, dir) {
-  const idx = state.workouts.findIndex(w => w.id === id);
-  if (idx < 0) return;
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= state.workouts.length) return;
-  const arr = [...state.workouts];
-  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
-  state.workouts = arr;
-  persist(); render();
-}
 
 function exerciseModalHTML(title, w, path, onSave, onCancel) {
   return `
@@ -722,8 +730,6 @@ function renderWorkoutLibrary() {
         <div class="divider"></div>
         ${w.tip ? `<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px;padding:10px;background:var(--bg);border-radius:10px">💡 ${esc(w.tip)}</div>` : ''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <button class="btn btn-secondary btn-sm" onclick="moveWorkout(${w.id},-1);event.stopPropagation()" title="Move up">↑</button>
-          <button class="btn btn-secondary btn-sm" onclick="moveWorkout(${w.id},1);event.stopPropagation()" title="Move down">↓</button>
           ${videoBtn}
           <button class="btn btn-secondary btn-sm" onclick="startEditWorkout(${w.id});event.stopPropagation()">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteWorkout(${w.id});event.stopPropagation()">Delete</button>
